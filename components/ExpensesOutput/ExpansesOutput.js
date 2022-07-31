@@ -50,6 +50,7 @@ export default ExpansesOutput;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingHorizontal: 24,
     paddingVertical: 24,
     paddingBottom: 0,
