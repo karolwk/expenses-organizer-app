@@ -7,12 +7,14 @@ import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
 
 const ManageExpenses = ({ route, navigation }) => {
+  const expneseCtx = useContext(ExpensesContext);
   // With "?" after params we check if params are undefined
   // if yes then we don't look up for another value in it
   const editedExpenseId = route.params?.expenseId;
   const isEditing = !!editedExpenseId; // Another JS trick to convert value to boolean
-
-  const expneseCtx = useContext(ExpensesContext);
+  const selectedExpense = expneseCtx.expenses.find(
+    (expense) => expense.id === editedExpenseId
+  );
 
   useLayoutEffect(() => {
     // Seting title dynamicly
@@ -30,33 +32,23 @@ const ManageExpenses = ({ route, navigation }) => {
     navigation.goBack();
   };
 
-  const confirmHandler = () => {
+  const confirmHandler = (expenseData) => {
     if (isEditing) {
-      expneseCtx.updateExpense(editedExpenseId, {
-        description: 'TestUpdate',
-        amount: 29.99,
-        date: new Date('2022-07-29'),
-      });
+      expneseCtx.updateExpense(editedExpenseId, expenseData);
     } else {
-      expneseCtx.addExpense({
-        description: 'Test',
-        amount: 19.99,
-        date: new Date('2022-07-28'),
-      });
+      expneseCtx.addExpense(expenseData);
     }
     navigation.goBack();
   };
   return (
     <View style={styles.container}>
-      <ExpenseForm />
-      <View style={styles.buttons}>
-        <Button mode="flat" onPress={cancelHandler} style={styles.button}>
-          Cancel
-        </Button>
-        <Button onPress={confirmHandler} style={styles.button}>
-          {isEditing ? 'Update' : 'Add'}
-        </Button>
-      </View>
+      <ExpenseForm
+        submitButtonLabel={isEditing ? 'Update' : 'Add'}
+        onCancel={cancelHandler}
+        onSubmit={confirmHandler}
+        defaultValues={selectedExpense}
+      />
+
       {isEditing && (
         <View style={styles.deleteContainer}>
           <IconButton
@@ -79,15 +71,7 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: GlobalStyles.colors.primary800,
   },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    minWidth: 120,
-    marginHorizontal: 8,
-  },
+
   deleteContainer: {
     marginTop: 16,
     paddingTop: 8,
