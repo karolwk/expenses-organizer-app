@@ -28,3 +28,12 @@ export const fetchExpenses = async () => {
   }
   return expenses;
 };
+
+export const updateExpense = (id, expenseData) => {
+  // We only return the promise, it will be usefeul in loading spiners etc.
+  return axios.put(BACKEND_URL + `/expenses/${id}.json`, expenseData);
+};
+
+export const deleteExpense = (id) => {
+  return axios.delete(BACKEND_URL + `/expenses/${id}.json`);
+};

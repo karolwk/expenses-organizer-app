@@ -5,7 +5,7 @@ import { GlobalStyles } from '../constants/styles';
 import Button from '../components/UI/Button';
 import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
-import { storeExpense } from '../util/http';
+import { deleteExpense, storeExpense, updateExpense } from '../util/http';
 
 const ManageExpenses = ({ route, navigation }) => {
   const expneseCtx = useContext(ExpensesContext);
@@ -24,8 +24,10 @@ const ManageExpenses = ({ route, navigation }) => {
     });
   }, [navigation, isEditing]);
 
-  const deleteExpeneseHanlder = () => {
+  const deleteExpeneseHanlder = async () => {
     expneseCtx.deleteExpense(editedExpenseId);
+    await deleteExpense(editedExpenseId); // Delete remotly
+
     navigation.goBack(); // Go back to screen that opened this screen
   };
 
@@ -36,6 +38,7 @@ const ManageExpenses = ({ route, navigation }) => {
   const confirmHandler = async (expenseData) => {
     if (isEditing) {
       expneseCtx.updateExpense(editedExpenseId, expenseData);
+      await updateExpense(editedExpenseId, expenseData); // we are using await to close the modal after remote update
     } else {
       const id = await storeExpense(expenseData);
       expneseCtx.addExpense({ ...expenseData, id: id });
