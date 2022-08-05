@@ -1,13 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native';
-import React, { useContext, useLayoutEffect } from 'react';
+import React, { useContext, useLayoutEffect, useState } from 'react';
 import IconButton from '../components/UI/IconButton';
 import { GlobalStyles } from '../constants/styles';
 import Button from '../components/UI/Button';
 import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
 import { deleteExpense, storeExpense, updateExpense } from '../util/http';
+import LoadingOverlay from '../components/UI/LoadingOverlay';
 
 const ManageExpenses = ({ route, navigation }) => {
+  const [isSumbmitting, setIsSumbmitting] = useState(false);
   const expneseCtx = useContext(ExpensesContext);
   // With "?" after params we check if params are undefined
   // if yes then we don't look up for another value in it
@@ -25,6 +27,8 @@ const ManageExpenses = ({ route, navigation }) => {
   }, [navigation, isEditing]);
 
   const deleteExpeneseHanlder = async () => {
+    setIsSumbmitting(true);
+
     expneseCtx.deleteExpense(editedExpenseId);
     await deleteExpense(editedExpenseId); // Delete remotly
 
@@ -36,6 +40,7 @@ const ManageExpenses = ({ route, navigation }) => {
   };
 
   const confirmHandler = async (expenseData) => {
+    setIsSumbmitting(true);
     if (isEditing) {
       expneseCtx.updateExpense(editedExpenseId, expenseData);
       await updateExpense(editedExpenseId, expenseData); // we are using await to close the modal after remote update
@@ -45,6 +50,11 @@ const ManageExpenses = ({ route, navigation }) => {
     }
     navigation.goBack();
   };
+
+  if (isSumbmitting) {
+    return <LoadingOverlay />;
+  }
+
   return (
     <View style={styles.container}>
       <ExpenseForm

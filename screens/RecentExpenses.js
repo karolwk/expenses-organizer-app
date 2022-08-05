@@ -4,19 +4,28 @@ import ExpansesOutput from '../components/ExpensesOutput/ExpansesOutput';
 import { ExpensesContext } from '../store/expenses-context';
 import { getDateMinusDays } from '../util/date';
 import { fetchExpenses } from '../util/http';
+import LoadingOverlay from '../components/UI/LoadingOverlay';
 
 const RecentExpenses = () => {
   const expensesContext = useContext(ExpensesContext);
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     //We shouldn't make useEffect async because it's not supoused to return promise
 
     const getExpenses = async () => {
+      setIsFetching(true);
       const expenses = await fetchExpenses();
+      setIsFetching(false);
       expensesContext.setExpenses(expenses);
     };
+
     getExpenses();
   }, []);
+
+  if (isFetching) {
+    return <LoadingOverlay />;
+  }
 
   const recentExpenses = expensesContext.expenses.filter((expense) => {
     const today = new Date();
