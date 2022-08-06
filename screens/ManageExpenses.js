@@ -7,9 +7,11 @@ import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
 import { deleteExpense, storeExpense, updateExpense } from '../util/http';
 import LoadingOverlay from '../components/UI/LoadingOverlay';
+import ErrorOverlay from '../components/UI/ErrorOverlay';
 
 const ManageExpenses = ({ route, navigation }) => {
   const [isSumbmitting, setIsSumbmitting] = useState(false);
+  const [error, setError] = useState();
   const expneseCtx = useContext(ExpensesContext);
   // With "?" after params we check if params are undefined
   // if yes then we don't look up for another value in it
@@ -29,10 +31,14 @@ const ManageExpenses = ({ route, navigation }) => {
   const deleteExpeneseHanlder = async () => {
     setIsSumbmitting(true);
 
-    expneseCtx.deleteExpense(editedExpenseId);
-    await deleteExpense(editedExpenseId); // Delete remotly
-
-    navigation.goBack(); // Go back to screen that opened this screen
+    try {
+      expneseCtx.deleteExpense(editedExpenseId);
+      await deleteExpense(editedExpenseId); // Delete remotly
+      navigation.goBack(); // Go back to screen that opened this screen
+    } catch (error) {
+      setError('Could not delete expense - plaease try again later');
+      setIsSumbmitting(false);
+    }
   };
 
   const cancelHandler = () => {
@@ -41,15 +47,29 @@ const ManageExpenses = ({ route, navigation }) => {
 
   const confirmHandler = async (expenseData) => {
     setIsSumbmitting(true);
-    if (isEditing) {
-      expneseCtx.updateExpense(editedExpenseId, expenseData);
-      await updateExpense(editedExpenseId, expenseData); // we are using await to close the modal after remote update
-    } else {
-      const id = await storeExpense(expenseData);
-      expneseCtx.addExpense({ ...expenseData, id: id });
+
+    try {
+      if (isEditing) {
+        expneseCtx.updateExpense(editedExpenseId, expenseData);
+        await updateExpense(editedExpenseId, expenseData); // we are using await to close the modal after remote update
+      } else {
+        const id = await storeExpense(expenseData);
+        expneseCtx.addExpense({ ...expenseData, id: id });
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError('Could not update expense - please try again later');
+      setIsSumbmitting(false);
     }
-    navigation.goBack();
   };
+
+  const errorHandler = () => {
+    setError(null);
+  };
+
+  if (error && !isSumbmitting) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
 
   if (isSumbmitting) {
     return <LoadingOverlay />;
